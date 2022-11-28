@@ -1,0 +1,16 @@
+{
+
+    "tarin":{
+        "Epoch":1000,
+        "LearnRate": 0.005,
+        "BatchSize": 1
+    },
+
+    "model":
+    {
+
+    },
+
+    "optimizer":
+    {}
+}
