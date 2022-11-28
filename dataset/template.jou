@@ -1,0 +1,30 @@
+file/read-case airfoil.cas
+define/models/energy? y y y
+define/models/viscous/kw-sst? y
+define/materials/change-create air air y ideal-gas n n y sutherland two-coefficient-method 1.716e-05 273.11 n n n
+define/boundary-conditions/pressure-far-field bc-2 n 101325 n mach n 300 n x_com n y_com n n y 5 5
+/solve/set/p-v-coupling
+
+solve/report-definitions/add cd drag force-vector x_com  y_com thread-ids bc-3 ()
+q
+solve/report-definitions/add cl lift force-vector -y_com x_com thread-ids bc-3 ()
+q
+solve/report-definitions/add cm moment mom-axis 0 0 -1 thread-ids bc-3 ()
+q
+solve/report-files/add cd file-name template_cd.out report-defs cd () frequency 10
+q
+solve/report-files/add cl file-name template_cl.out report-defs cl () frequency 10
+q
+solve/report-files/add cm file-name template_cm.out report-defs cm () frequency 10
+q
+solve/set/reporting-interval 50
+
+/report/reference-values/compute/pressure-far-field
+
+solve/initialize/compute-defaults/pressure-far-field
+
+solve/initialize/initialize-flow 
+solve/iterate 1000 n y
+file/write-case-data template.cas.h5 o
+file/export/ascii ./template_res.txt bc-2 bc-3 interior-vc-2 () yes relative-y-velocity relative-x-velocity pressure-coefficient () n o
+exit o
