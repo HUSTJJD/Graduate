@@ -10,7 +10,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 import random
 from datetime import datetime
 
-import numpy as np
 import torch
 
 ###
@@ -19,7 +18,6 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from train.util import FloatTensor, every_seed, log, resetLog, sample_image, weights_init_normal, statistics_param, DecoderDataset, device
 
-from torchsummary import summary
 
 
 # ----------
@@ -55,13 +53,10 @@ Epoch = 1000
 BatchSize = 15
 LearningRate = 0.0001
 
-
-
 num_workers = 5
 accumulated_step = 10 - BatchSize % 10 if BatchSize < 10 else 1
 # Loss weight for gradient penalty
 eval_ratio = 0.2
-
 log(LogPath, f"[Epoch {Epoch}] [BatchSize {BatchSize}] [LearningRate: {LearningRate}] [eval_ratio {eval_ratio}]")
 
 
@@ -78,7 +73,6 @@ train_dataset, eval_dataset = torch.utils.data.random_split(dataset, [train_size
 # Configure data loader
 # ----------------------
 train_loader = DataLoader(dataset=train_dataset, batch_size=BatchSize, num_workers=num_workers, shuffle=True)
-
 eval_loader = DataLoader(dataset=eval_dataset, batch_size=BatchSize, num_workers=num_workers, shuffle=True)
 
 
@@ -86,9 +80,6 @@ eval_loader = DataLoader(dataset=eval_dataset, batch_size=BatchSize, num_workers
 # Initialize Decoder 
 # ----------------------------------------
 decoder = Decoder().to(device)
-
-# summary(Decoder, input_size=(1,12), batch_size=1)
-
 
 
 # ------------
@@ -102,7 +93,6 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau( optimizer, mode='min', p
 # Loss functions
 # ----------------
 loss_func = torch.nn.L1Loss().to(device)
-
 
 
 # --------------------
@@ -168,7 +158,7 @@ for epo in range(Epoch):
     # if epo % 10 == 0:
     #     sample_image(epochs=epo, decoder=decoder, sample_image_path=TaskPath, image_path=TargetPath)
 
-    loss_mean = loss_mean
+    loss_mean = (loss_ep+loss_evep)/2
     scheduler.step(loss_mean)
     # average loss_ep
     log(LogPath, '[epo %d\t/%d] [Train loss: %f\t] [Eval loss: %f\t] [Avg loss: %f\t]' % (epo, Epoch, loss_ep, loss_evep, loss_mean), False)
