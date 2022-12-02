@@ -25,7 +25,7 @@ from train.util import FloatTensor, every_seed, log, resetLog, sample_image, wei
 # ----------
 
 TYPE = 'CST/128_128'
-Task = 'transgen_self'
+Task = 'test'
 
 TargetPath = f'dataset/{TYPE}/Target'
 FeaturePath = f'dataset/{TYPE}/Feature/'
@@ -136,7 +136,7 @@ for epo in range(Epoch):
         optimizer.step()
 
         if i % (len(train_loader)//2 + 1 or 2) == 0:
-            print('[epo %d/%d] [Batch %d/%d] [Train loss: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item()))
+            print('[epoch %d/%d] [Batch %d/%d] [Train loss: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item()))
     loss_ep /= len(train_loader.dataset)
 
     decoder.eval()
@@ -151,7 +151,7 @@ for epo in range(Epoch):
 
             loss_evep += loss_ev.sum()
             if i % (len(eval_loader) + 1 or 2) == 0:
-                print('[epo %d/%d] [Batch %d/%d] [Eval loss: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item()))
+                print('[epoch %d/%d] [Batch %d/%d] [Eval loss: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item()))
 
     loss_evep /= len(eval_loader.dataset)
     # test and save sample images
