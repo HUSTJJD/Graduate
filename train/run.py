@@ -52,12 +52,12 @@ every_seed(seed)
 # --------------
 
 Epoch = 1000
-BatchSize = 20
+BatchSize = 15
 LearningRate = 0.0001
 
 
 
-num_workers = 10
+num_workers = 5
 accumulated_step = 10 - BatchSize % 10 if BatchSize < 10 else 1
 # Loss weight for gradient penalty
 eval_ratio = 0.2
@@ -77,9 +77,9 @@ train_dataset, eval_dataset = torch.utils.data.random_split(dataset, [train_size
 # ----------------------
 # Configure data loader
 # ----------------------
-train_loader = DataLoader(dataset=train_dataset, batch_size=BatchSize, num_workers=2, shuffle=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=BatchSize, num_workers=num_workers, shuffle=True)
 
-eval_loader = DataLoader(dataset=eval_dataset, batch_size=BatchSize, num_workers=2, shuffle=True)
+eval_loader = DataLoader(dataset=eval_dataset, batch_size=BatchSize, num_workers=num_workers, shuffle=True)
 
 
 # ----------------------------------------
@@ -137,8 +137,8 @@ for epo in range(Epoch):
         #  Train Decoder
         # -----------------
         optimizer.zero_grad()
-        fake_imgs = decoder(feature)
-        loss_bt = loss_func(target, fake_imgs)
+        predict = decoder(feature)
+        loss_bt = loss_func(target, predict)
 
         loss_bt.backward()
         loss_ep += loss_bt.sum()
@@ -156,8 +156,8 @@ for epo in range(Epoch):
             target = Variable(target.type(FloatTensor))
             feature = Variable(feature.type(FloatTensor))
 
-            fake_imgs = decoder(feature)
-            loss_ev = loss_func(target, fake_imgs)
+            predict = decoder(feature)
+            loss_ev = loss_func(target, predict)
 
             loss_evep += loss_ev.sum()
             if i % (len(eval_loader) + 1 or 2) == 0:
@@ -165,8 +165,8 @@ for epo in range(Epoch):
 
     loss_evep /= len(eval_loader.dataset)
     # test and save sample images
-    if epo % 10 == 0:
-        sample_image(Epochs=epo, decoder=decoder, sample_image_path=TaskPath, image_path=TargetPath)
+    # if epo % 10 == 0:
+    #     sample_image(epochs=epo, decoder=decoder, sample_image_path=TaskPath, image_path=TargetPath)
 
     loss_mean = loss_mean
     scheduler.step(loss_mean)
