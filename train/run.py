@@ -1,5 +1,9 @@
 
 ##
+import sys
+BASE_DIR=  os.path.dirname(os.path.dirname( os.path.abspath(__file__) ))                   
+# 将这个路径添加到环境变量中。
+sys.path.append( BASE_DIR  )
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 ####
@@ -14,13 +18,8 @@ from model.TransGen import Decoder
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from train.util import FloatTensor, every_seed, log, resetLog, sample_image, weights_init_normal, statistics_param, DecoderDataset, device
-import sys
-
 
 from torchsummary import summary
-BASE_DIR=  os.path.dirname(os.path.dirname( os.path.abspath(__file__) ))                   
-# 将这个路径添加到环境变量中。
-sys.path.append( BASE_DIR  )                
 
 
 # ----------
