@@ -18,11 +18,11 @@ np.set_printoptions(threshold=np.inf)
 
 # 取 region [top, bottom, left, right]
 # 设定采样分辨率 (-region, region) 分成 x * y 个区间， 区间内点的均值做为区间的值 定义左上角 (0, 0) 
-region = [1.0, -1.0, -0.5, 1.5]
-x, y = 128, 128
+# region = [1.0, -1.0, -0.5, 1.5]
+# x, y = 128, 128
 
-# region = [1.0, -1.0, -0.3, 0.7]
-# x, y = 256, 128
+region = [1.0, -1.0, -0.3, 0.7]
+x, y = 256, 128
 
 TYPE = 'CST'
 CFDPath = f'{TYPE}/cfd_result/'
@@ -127,8 +127,8 @@ def data_extration(arg):
 
 def find_max():
     f = open(f'{TrainPath}statistics.csv', 'w')
-    print('','p_max', 'p_min', 'p_avg', 'p_std', 'p_var', 'p_mid', sep=",", end='', file=f)
-    print('vx_max', 'vx_min', 'vx_avg', 'vx_std', 'vx_var', 'vx_mid', sep=",", end='', file=f)
+    print('','p_max', 'p_min', 'p_avg', 'p_std', 'p_var', 'p_mid', sep=",", end=',', file=f)
+    print('vx_max', 'vx_min', 'vx_avg', 'vx_std', 'vx_var', 'vx_mid', sep=",", end=',', file=f)
     print('vy_max', 'vy_min', 'vy_avg', 'vy_std', 'vy_var', 'vy_mid',sep=",", file=f)
     for i in range(len(params)):
         for j in range(len(airfoils)):
@@ -157,8 +157,8 @@ def find_max():
             y_var = np.var(data[:, 5])
             y_mid = np.median(data[:, 5])
 
-            print(Label, p_a, p_i, p_avg, p_std, p_var, p_mid, sep=",", end='', file=f)
-            print(x_a, x_i, x_avg, x_std, x_var, x_mid, sep=",", end='', file=f)
+            print(Label, p_a, p_i, p_avg, p_std, p_var, p_mid, sep=",", end=',', file=f)
+            print(x_a, x_i, x_avg, x_std, x_var, x_mid, sep=",", end=',', file=f)
             print(y_a, y_i, y_avg, y_std, y_var, y_mid, sep=",", file=f)
     f.close()
 
