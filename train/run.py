@@ -1,10 +1,10 @@
 
 ##
+import os
 import sys
 BASE_DIR=  os.path.dirname(os.path.dirname( os.path.abspath(__file__) ))                   
 # 将这个路径添加到环境变量中。
 sys.path.append( BASE_DIR  )
-import os
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 ####
 import random
