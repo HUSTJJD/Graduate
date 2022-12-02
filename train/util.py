@@ -22,8 +22,11 @@ image_names = [1, 1719, 2802]
 
 conditions = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
 
-FloatTensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
-LongTensor = torch.cuda.LongTensor if torch.cuda.is_available() else torch.LongTensor
+# device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device =  'cpu'
+
+FloatTensor = torch.cuda.FloatTensor if device == 'cuda' else torch.FloatTensor
+LongTensor = torch.cuda.LongTensor if device == 'cuda' else torch.LongTensor
 
 
 def sample_image(epochs, decoder, sample_image_path, image_path):
