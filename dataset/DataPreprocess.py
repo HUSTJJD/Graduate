@@ -40,7 +40,7 @@ TYPE = 'CST'
 method = PreProcess.allnorm
 TAG = f'{x}_{y}_{method.value}'
 CFDPath = f'{TYPE}/cfd_result/'
-TrainPath = f'{TYPE}/{x}_{y}'
+TrainPath = f'{TYPE}/{TAG}/'
 TargetPath = f'{TrainPath}Target/'
 VisualPath = f'{TrainPath}Visual/'
 FeaturePath = f'{TrainPath}Feature/'
@@ -156,7 +156,7 @@ def data_extration(arg):
 
 
 def find_max():
-    file = f'{TrainPath}statistics.csv'
+    file = f'{TYPE}/{x}_{y}_statistics.csv'
     if not os.path.exists(file):
         f = open(file, 'w')
         print('','p_max', 'p_min', 'p_avg', 'p_std', 'p_var', 'p_mid', sep=",", end=',', file=f)
