@@ -7,7 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+# import seaborn as sns
 import torch
 import torch.autograd as autograd
 from torch.autograd import Variable
@@ -29,7 +29,8 @@ device =  'cpu'
 FloatTensor = torch.cuda.FloatTensor if device == 'cuda' else torch.FloatTensor
 LongTensor = torch.cuda.LongTensor if device == 'cuda' else torch.LongTensor
 
-
+# 生成对比图
+'''
 def sample_image(epochs, decoder, sample_image_path, image_path):
     """Saves a grid of generated digits ranging from 0 to n_classes"""
 
@@ -41,7 +42,7 @@ def sample_image(epochs, decoder, sample_image_path, image_path):
         comparison_image(real_image, fake_image, f'{sample_image_path}{epochs}_{i}.png')
 
 
-# 生成对比图
+
 def comparison_image(real_image: None, fake_image: None, path):
     cmap = plt.get_cmap('jet_r', 999999)
     cmap_error = plt.get_cmap('Reds', 999999)
@@ -116,7 +117,7 @@ def comparison_image(real_image: None, fake_image: None, path):
     plt.savefig(path, dpi=600)
     plt.clf()
     plt.close()
-
+'''
 
 def compute_gradient_penalty(D, real_samples, fake_samples):
     """Calculates the gradient penalty loss for WGAN GP"""

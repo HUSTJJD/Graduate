@@ -16,7 +16,7 @@ import torch
 from model.TransGen import Decoder
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-from train.util import FloatTensor, every_seed, log, resetLog, sample_image, weights_init_normal, statistics_param, DecoderDataset, device
+from train.util import FloatTensor, every_seed, log, resetLog, weights_init_normal, statistics_param, DecoderDataset, device
 
 
 
@@ -136,7 +136,7 @@ for epo in range(Epoch):
         optimizer.step()
 
         if i % (len(train_loader)//2 + 1 or 2) == 0:
-            print('[epoch %d\t/%d] [Batch %d\t/%d] [Train loss: %f] [loss_ep: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item(), loss_ep))
+            print('[Epoch %04d/%d] [Batch %03d/%d] [Train loss: %f] [loss_ep: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item(), loss_ep))
     loss_ep /= len(train_loader.dataset)
 
 
@@ -152,7 +152,7 @@ for epo in range(Epoch):
 
             loss_evep += loss_ev.sum()
             if i % (len(eval_loader) + 1 or 2) == 0:
-                print('[epoch %d\t/%d] [Batch %d\t/%d] [Eval loss: %f] [loss_evep: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item(), loss_evep))
+                print('[Epoch %04d/%d] [Batch %03d/%d] [Eval loss: %f] [loss_evep: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item(), loss_evep))
     loss_evep /= len(eval_loader.dataset)
 
 
@@ -163,7 +163,7 @@ for epo in range(Epoch):
     loss_mean = (loss_ep+loss_evep)/2
     scheduler.step(loss_mean)
     # average loss_ep
-    log(LogPath, '[epo %d\t/%d] [Train loss: %f\t] [Eval loss: %f\t] [Avg loss: %f\t]' % (epo, Epoch, loss_ep, loss_evep, loss_mean), False)
+    log(LogPath, '[Epoch %04d/%d] [Train loss: %f] [Eval loss: %f] [Avg loss: %f]' % (epo, Epoch, loss_ep, loss_evep, loss_mean), False)
 
     # save model and loss
     if loss_mean < loss_record:
