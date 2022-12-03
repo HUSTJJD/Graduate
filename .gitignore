@@ -2,12 +2,8 @@ dataset/CST/cas
 dataset/CST/cfd_result
 dataset/CST/dat
 
-
 dataset/CST/*/Feature
 dataset/CST/*/Target
 dataset/CST/*/Visual
-
-
-
 
 */__pycache__
