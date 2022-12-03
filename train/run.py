@@ -24,7 +24,7 @@ from train.util import FloatTensor, every_seed, log, resetLog, sample_image, wei
 # path args
 # ----------
 
-TYPE = 'CST/128_128'
+TYPE = 'CST/128_128_norm'
 Task = 'test'
 
 TargetPath = f'dataset/{TYPE}/Target'
@@ -136,8 +136,9 @@ for epo in range(Epoch):
         optimizer.step()
 
         if i % (len(train_loader)//2 + 1 or 2) == 0:
-            print('[epoch %d/%d] [Batch %d/%d] [Train loss: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item()))
+            print('[epoch %d\t/%d] [Batch %d\t/%d] [Train loss: %f] [loss_ep: %f]' % (epo, Epoch, i, len(train_loader), loss_bt.item(), loss_ep))
     loss_ep /= len(train_loader.dataset)
+
 
     decoder.eval()
     loss_evep = 0
@@ -151,9 +152,10 @@ for epo in range(Epoch):
 
             loss_evep += loss_ev.sum()
             if i % (len(eval_loader) + 1 or 2) == 0:
-                print('[epoch %d/%d] [Batch %d/%d] [Eval loss: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item()))
-
+                print('[epoch %d\t/%d] [Batch %d\t/%d] [Eval loss: %f] [loss_evep: %f]' % (epo, Epoch, i, len(eval_loader), loss_ev.item(), loss_evep))
     loss_evep /= len(eval_loader.dataset)
+
+
     # test and save sample images
     # if epo % 10 == 0:
     #     sample_image(epochs=epo, decoder=decoder, sample_image_path=TaskPath, image_path=TargetPath)

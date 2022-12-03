@@ -1,13 +1,22 @@
 dataset/CST/cas
 dataset/CST/cfd_result
 dataset/CST/dat
+
 dataset/CST/128_128/Feature
 dataset/CST/128_128/Target
 dataset/CST/128_128/Visual
 
+dataset/CST/128_128_norm/Feature
+dataset/CST/128_128_norm/Target
+dataset/CST/128_128_norm/Visual
+
 dataset/CST/256_128/Feature
 dataset/CST/256_128/Target
 dataset/CST/256_128/Visual
+
+dataset/CST/256_128_norm/Feature
+dataset/CST/256_128_norm/Target
+dataset/CST/256_128_norm/Visual
 
 
 */__pycache__

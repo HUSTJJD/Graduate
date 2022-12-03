@@ -1,5 +1,5 @@
 
-import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import os
 from multiprocessing.pool import Pool
 
@@ -18,18 +18,20 @@ np.set_printoptions(threshold=np.inf)
 
 # 取 region [top, bottom, left, right]
 # 设定采样分辨率 (-region, region) 分成 x * y 个区间， 区间内点的均值做为区间的值 定义左上角 (0, 0) 
-# region = [1.0, -1.0, -0.5, 1.5]
-# x, y = 128, 128
+region = [1.0, -1.0, -0.5, 1.5]
+x, y = 128, 128
 
-region = [1.0, -1.0, -0.3, 0.7]
-x, y = 256, 128
+# region = [1.0, -1.0, -0.3, 0.7]
+# x, y = 256, 128
 
 TYPE = 'CST'
+method = 'norm'
+TAG = f'{x}_{y}_{method}'
 CFDPath = f'{TYPE}/cfd_result/'
-TrainPath = f'{TYPE}/{x}_{y}/'
-TargetPath = f'{TYPE}/{x}_{y}/Target/'
-VisualPath = f'{TYPE}/{x}_{y}/Visual/'
-FeaturePath = f'{TYPE}/{x}_{y}/Feature/'
+TrainPath = f'{TYPE}/{TAG}/'
+TargetPath = f'{TrainPath}Target/'
+VisualPath = f'{TrainPath}Visual/'
+FeaturePath = f'{TrainPath}Feature/'
 
 os.makedirs(TargetPath) if not os.path.exists(TargetPath) else None
 os.makedirs(VisualPath) if not os.path.exists(VisualPath) else None
@@ -52,13 +54,21 @@ def data_extration(arg):
 
     png = np.zeros((3, y, x))
     # 机翼内部全为 -1
-    png = png - 1
 
     # 先选出区域 [top,bottom,left right]
     data = data[(region[2] <= data[:, 1]) & (data[:, 1] <= region[3]) & (region[1] <= data[:, 2]) & (data[:, 2] <= region[0]), :]
     boundary = data[np.where(data[:, 4] == 0)[0], 0]
-    p_a, p_i, x_a, x_i, y_a, y_i = np.max(data[:, 3]), np.min(data[:, 3]), np.max(data[:, 4]), np.min(data[:, 4]), np.max(data[:, 5]), np.min(data[:, 5])
-    d_p, d_vx, d_vy = p_a-p_i, x_a-x_i, y_a-y_i
+    if method == 'norm':
+        p_a, p_i, x_a, x_i, y_a, y_i = np.max(data[:, 3]), np.min(data[:, 3]), np.max(data[:, 4]), np.min(data[:, 4]), np.max(data[:, 5]), np.min(data[:, 5])
+        png = png - 1
+        d_p, d_vx, d_vy = p_a-p_i, x_a-x_i, y_a-y_i
+    elif method == 'std':
+        p_a, p_i, x_a, x_i, y_a, y_i = 1, 0, 1, 0, 1, 0
+        d_p, d_vx, d_vy = np.sqrt(np.std(data[:, 3])), np.sqrt(np.std(data[:, 4])), np.sqrt(np.std(data[:, 5]))
+    elif method == '':
+        p_a, p_i, x_a, x_i, y_a, y_i = 1, 0, 1, 0, 1, 0
+        d_p, d_vx, d_vy = p_a-p_i, x_a-x_i, y_a-y_i
+
     i, j, t = 0, 0, 0
     b_p, b_x, b_y, b_n, b_t = 0, 0, 0, 0, 0
     while i < y and j < x:
@@ -108,19 +118,19 @@ def data_extration(arg):
     np.save(file=f'{TargetPath}{Label}.npy', arr=png)
 
     # 输出通道数据的示意图
-    cmap = plt.get_cmap('jet', 999999)
-    png = np.ma.masked_outside(png, 0, 1)
-
-    background = Image.new(
-        'RGBA', ((x*3 + (3-1)*1), y), (255, 255, 255, 255))
-    pressure = Image.fromarray(cmap(np.ma.masked_outside(png[0], 0, 1), bytes=True))
+    cmap = cm.get_cmap('jet', 99999)
+    if method == True:
+        png = np.ma.masked_outside(png, 0, 1)
+    else:
+        png = np.ma.masked_values(png, 0)
+    print(png)
+    background = Image.new('RGBA', ((x*3 + (3-1)*1), y), (255, 255, 255, 0))
+    pressure = Image.fromarray(cmap(png[0], bytes=True))
     background.paste(pressure, (0, 0))
-    x_velocity = Image.fromarray(cmap(np.ma.masked_outside(png[1], 0, 1), bytes=True))
+    x_velocity = Image.fromarray(cmap(png[1], bytes=True))
     background.paste(x_velocity, (x + 1, 0))
-    y_velocity = Image.fromarray(
-        cmap(np.ma.masked_outside(png[2], 0, 1), bytes=True))
+    y_velocity = Image.fromarray(cmap(png[2], bytes=True))
     background.paste(y_velocity, (2*(x + 1), 0))
-
     background.save(fp=f'{VisualPath}{Label}.png')
     print(Label, '\tdone.')
 
@@ -168,28 +178,28 @@ def find_max():
 # find_max()
 # find_control_scape()
 # 测试样本
-# data_extration((8, 1))
+data_extration((0, 0))
 
 
-if __name__ == '__main__':
-    # 多线程提取数据
-    if 0: 
-        args = []
-        for i in range(len(params)):
-            for j in range(len(airfoils)):
-                if os.path.exists(f'{CFDPath}{i}_{j}.txt') and not os.path.exists(f'{TargetPath}{i}_{j}.npy'):
-                    args.append((i,j))
-        thread_pool = Pool()
-        thread_pool.map_async(data_extration, args)
-        thread_pool.close()
-        thread_pool.join()
-    # 输出流场图的视频
-    if 0: 
-        frames = []
-        files  = os.listdir(VisualPath)
-        for file in files:
-            frames.append(imageio.imread(VisualPath+file))
-        imageio.v2.mimsave(f'{TYPE}/{x}_{y}.mp4', frames)
-    # 输出统计值
-    if 1: 
-        find_max()
+# if __name__ == '__main__':
+#     # 多线程提取数据
+#     if 1: 
+#         args = []
+#         for i in range(len(params)):
+#             for j in range(len(airfoils)):
+#                 if os.path.exists(f'{CFDPath}{i}_{j}.txt') and not os.path.exists(f'{TargetPath}{i}_{j}.npy'):
+#                     args.append((i,j))
+#         thread_pool = Pool()
+#         thread_pool.map_async(data_extration, args)
+#         thread_pool.close()
+#         thread_pool.join()
+#     # 输出流场图的视频
+#     if 0: 
+#         frames = []
+#         files  = os.listdir(VisualPath)
+#         for file in files:
+#             frames.append(imageio.imread(VisualPath+file))
+#         imageio.v2.mimsave(f'{TYPE}/{TAG}.mp4', frames)
+#     # 输出统计值
+#     if 0: 
+#         find_max()
