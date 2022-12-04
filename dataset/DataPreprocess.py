@@ -37,7 +37,7 @@ max_min = (1.0537262,-2.49744,295.92245,-11.812475,192.1319,-119.62509)
 mean_std = (-0.221649127,0.410280127,104.0983921,25.7246567,5.795033549,16.61587769)
 
 TYPE = 'CST'
-method = PreProcess.allnorm
+method = PreProcess.allstd
 TAG = f'{x}_{y}_{method.value}'
 CFDPath = f'{TYPE}/cfd_result/'
 TrainPath = f'{TYPE}/{TAG}/'
