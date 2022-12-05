@@ -183,11 +183,12 @@ if __name__ == '__main__':
         thread_pool.join()
     # 输出流场图的视频
     if 1: 
-        frames = []
-        files  = os.listdir(VisualPath)
-        for file in files:
-            frames.append(imageio.imread(VisualPath+file))
-        imageio.v2.mimsave(f'{TYPE}/{TAG}.mp4', frames)
+        if not os.path.exists(f'{TYPE}/{TAG}.mp4'):
+            frames = []
+            files  = os.listdir(VisualPath)
+            for file in files:
+                frames.append(imageio.imread(VisualPath+file))
+            imageio.v2.mimsave(f'{TYPE}/{TAG}.mp4', frames)
     # 输出统计值
 #     if 0: 
 #         find_max()
