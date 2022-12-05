@@ -222,21 +222,44 @@ class DecoderDataset(Dataset):
     def __init__(self, image_path, label_path, tag, PreProcess:PreProcess):
         self.img_files = sorted(glob.glob('%s/*.npy' % image_path))
         self.label_files = sorted(glob.glob('%s/*.txt' % label_path))
+        if PreProcess.scope == Scope.all:
+            self.m_d = None
+        else:
+            self.m_d = None
+        self.method = PreProcess.method
 
     def __getitem__(self, index):
         img_path = self.img_files[index % len(self.img_files)]
-        img_name = os. img_path
         img = np.load(img_path)
         label = np.loadtxt(self.label_files[index % len(
             self.label_files)], dtype=np.float32, delimiter=',')
-
-        img = self.PrePorcess(img,)
+        if len(self.m_d) == 1:
+            m_d = self.m_d[1:]
+        else:
+            img_name = os.path.splitext(img_path)[-1]
+            m_d = self.m_d[np.where(self.m_d[0] == img_name)[0]][1:]
+        #p_max,p_min,p_avg,p_std,p_var,p_mid,vx_max,vx_min,vx_avg,vx_std,vx_var,vx_mid,vy_max,vy_min,vy_avg,vy_std,vy_var,vy_mid
+        #    0,    1,    2,    3,    4,    5,     6,     7,     8,     9,    10,    11,    12,    13,    14,    15,    16,    17
+        if self.method == Method.norm:
+            m_d = m_d[0, 1, 6,  7, 12, 13]
+            img = DecoderDataset.__normoalziation__(img, m_d)
+        elif self.method == Method.std:
+            m_d = m_d[3, 4, 9, 10, 14, 15]
+            img = DecoderDataset.__standardization__(img, m_d)
         return img, label
 
-    def __normoalziation__(img, mp, dp, mx, dx, my, dy):
-        img[0] = img[0] - mp / dp
-        img[1] = img[1] - mx / dx
-        img[2] = img[2] - my / dy
+    @staticmethod
+    def __normoalziation__(img, m_d):
+        img[0] = (img[0] - m_d[1]) / (m_d[0] - m_d[1])
+        img[1] = (img[1] - m_d[3]) / (m_d[2] - m_d[3])
+        img[2] = (img[2] - m_d[5]) / (m_d[4] - m_d[5])
+        return img
+
+    @staticmethod
+    def __standardization__(img, m_d):
+        img[0] = (img[0] - m_d[0]) / m_d[1] 
+        img[1] = (img[1] - m_d[2]) / m_d[3] 
+        img[2] = (img[2] - m_d[4]) / m_d[5] 
         return img
 
     def __len__(self):
