@@ -33,15 +33,12 @@ LongTensor = torch.cuda.LongTensor if device == 'cuda' else torch.LongTensor
 '''
 def sample_image(epochs, decoder, sample_image_path, image_path):
     """Saves a grid of generated digits ranging from 0 to n_classes"""
-
     control = Variable(FloatTensor(controls))
     gen_imgs = decoder(control)
     for i in range(gen_imgs.shape[0]):
         real_image = np.load(f'{image_path}{image_names[i]}.npy')
         fake_image = gen_imgs[i].to('cpu').data.numpy()
         comparison_image(real_image, fake_image, f'{sample_image_path}{epochs}_{i}.png')
-
-
 
 def comparison_image(real_image: None, fake_image: None, path):
     cmap = plt.get_cmap('jet_r', 999999)
@@ -50,40 +47,28 @@ def comparison_image(real_image: None, fake_image: None, path):
     error = np.abs(fake_image-real_image)
     real_image = np.ma.masked_outside(real_image, -0.1, 1.1)
     fake_image = np.ma.masked_outside(fake_image, -0.1, 1.1)
-
     sns.heatmap(real_image[0].data, vmin=0, vmax=1, ax=axes[0][0], cmap=cmap, cbar=False, mask=real_image[0].mask)
     sns.heatmap(real_image[1].data, vmin=0, vmax=1, ax=axes[1][0], cmap=cmap, cbar=False, mask=real_image[1].mask)
     sns.heatmap(real_image[2].data, vmin=0, vmax=1, ax=axes[2][0], cmap=cmap, cbar=False, mask=real_image[2].mask)
-
     sns.heatmap(fake_image[0].data, vmin=0, vmax=1, ax=axes[0][1], cmap=cmap, cbar=False, mask=fake_image[0].mask)
     sns.heatmap(fake_image[1].data, vmin=0, vmax=1, ax=axes[1][1], cmap=cmap, cbar=False, mask=fake_image[1].mask)
     sns.heatmap(fake_image[2].data, vmin=0, vmax=1, ax=axes[2][1], cmap=cmap, cbar=False, mask=fake_image[2].mask)
-
     sns.heatmap(error[0], vmin=-0, vmax=0.1, ax=axes[0][2], cmap=cmap_error, cbar=False)
     sns.heatmap(error[1], vmin=-0, vmax=0.1, ax=axes[1][2], cmap=cmap_error, cbar=False)
     sns.heatmap(error[2], vmin=-0, vmax=0.1, ax=axes[2][2], cmap=cmap_error, cbar=False)
-
     sns.kdeplot(real_image[0].flatten(), ax=axes[0][3], shade=True, label='Groud Truth')
     sns.kdeplot(fake_image[0].flatten(), ax=axes[0][3], shade=True, label='Generated')
-
     sns.kdeplot(real_image[0].flatten(), ax=axes[0][4], shade=True, cumulative=True, label='Groud Truth')
     sns.kdeplot(fake_image[0].flatten(), ax=axes[0][4], shade=True, cumulative=True, label='Generated')
-
     sns.kdeplot(real_image[1].flatten(), ax=axes[1][3], shade=True, label='Groud Truth')
     sns.kdeplot(fake_image[1].flatten(), ax=axes[1][3], shade=True, label='Generated')
-
     sns.kdeplot(real_image[1].flatten(), ax=axes[1][4], shade=True, cumulative=True, label='Groud Truth')
     sns.kdeplot(fake_image[1].flatten(), ax=axes[1][4], shade=True, cumulative=True, label='Generated')
-
-
     sns.kdeplot(real_image[2].flatten(), ax=axes[2][3], shade=True, label='Groud Truth')
     sns.kdeplot(fake_image[2].flatten(), ax=axes[2][3], shade=True, label='Generated')
-
     sns.kdeplot(real_image[2].flatten(), ax=axes[2][4], shade=True, cumulative=True, label='Groud Truth')
     sns.kdeplot(fake_image[2].flatten(), ax=axes[2][4], shade=True, cumulative=True, label='Generated')
-
     plt.subplots_adjust(left=0.02, bottom=0.05, right=0.98, top=0.95, wspace=0.15, hspace=0.25)
-
     axes[0][0].axis('off')
     axes[1][0].axis('off')
     axes[2][0].axis('off')
@@ -93,27 +78,21 @@ def comparison_image(real_image: None, fake_image: None, path):
     axes[0][2].axis('off')
     axes[1][2].axis('off')
     axes[2][2].axis('off')
-
     axes[0][3].set_title('pressure-coefficient', fontsize=12)
     axes[1][3].set_title('x-velocity', fontsize=12)
     axes[2][3].set_title('y-velocity', fontsize=12)
-
     axes[0][3].yaxis.set_ticks([])
     axes[0][3].set_ylabel('Density', fontsize=10, rotation=90)
     axes[0][4].yaxis.set_ticks([])
     axes[0][4].set_ylabel('Cumulative')
-
     axes[1][3].yaxis.set_ticks([])
     axes[1][3].set_ylabel('Density', fontsize=10, rotation=90)
     axes[1][4].yaxis.set_ticks([])
     axes[1][4].set_ylabel('Cumulative')
-
     axes[2][3].yaxis.set_ticks([])
     axes[2][3].set_ylabel('Density', fontsize=10, rotation=90)
     axes[2][4].yaxis.set_ticks([])
     axes[2][4].set_ylabel('Cumulative')
-    
-
     plt.savefig(path, dpi=600)
     plt.clf()
     plt.close()
@@ -212,44 +191,47 @@ class Scope(Enum):
     all = 'all'
     self = 'self'
 class Method(Enum):
-    std = 0
-    norm = 1
-class PreProcess(Enum):
-    method = Method
-    scope = Scope
+    std = 'std'
+    norm = 'norm'
+
 
 class DecoderDataset(Dataset):
-    def __init__(self, image_path, label_path, tag, PreProcess:PreProcess):
+    def __init__(self, image_path, label_path, tag, scope, methodm):
         self.img_files = sorted(glob.glob('%s/*.npy' % image_path))
         self.label_files = sorted(glob.glob('%s/*.txt' % label_path))
-        if PreProcess.scope == Scope.all:
-            self.m_d = None
+        self.scope = scope
+        self.method = methodm
+        if self.scope == Scope.all.value:
+            self.m_d = np.loadtxt(f'{tag}all.csv', delimiter=',', skiprows=1)
         else:
-            self.m_d = None
-        self.method = PreProcess.method
+            self.m_d = np.loadtxt(f'{tag}self.csv', delimiter=',', skiprows=1, dtype = str)
+        self.min_label = np.array([0.15, 0.15, 0.15, 0.15, 0.15, 0.10, -0.20, -0.20, -0.15, -0.15, -0.10, -0.05, 0.1, 0])
+        self.max_label = np.array([0.35, 0.45, 0.45, 0.45, 0.35, 0.30, -0.10,  0.00,  0.02,  0.02,  0.05,  0.10, 0.5, 5])
 
     def __getitem__(self, index):
         img_path = self.img_files[index % len(self.img_files)]
         img = np.load(img_path)
-        label = np.loadtxt(self.label_files[index % len(
-            self.label_files)], dtype=np.float32, delimiter=',')
-        if len(self.m_d) == 1:
+        label = np.loadtxt(self.label_files[index % len(self.label_files)], dtype=np.float32, delimiter=',')
+        if len(self.m_d.shape) == 1:
             m_d = self.m_d[1:]
         else:
-            img_name = os.path.splitext(img_path)[-1]
-            m_d = self.m_d[np.where(self.m_d[0] == img_name)[0]][1:]
+            img_name = os.path.split(img_path)[-1].split('.')[0]
+            m_d = self.m_d[np.where(self.m_d[:,0] == img_name)[0][0]]
+            assert m_d[0] == img_name
+            m_d = m_d[1:].astype(np.float)
         #p_max,p_min,p_avg,p_std,p_var,p_mid,vx_max,vx_min,vx_avg,vx_std,vx_var,vx_mid,vy_max,vy_min,vy_avg,vy_std,vy_var,vy_mid
         #    0,    1,    2,    3,    4,    5,     6,     7,     8,     9,    10,    11,    12,    13,    14,    15,    16,    17
-        if self.method == Method.norm:
-            m_d = m_d[0, 1, 6,  7, 12, 13]
-            img = DecoderDataset.__normoalziation__(img, m_d)
-        elif self.method == Method.std:
-            m_d = m_d[3, 4, 9, 10, 14, 15]
+        if self.method == Method.norm.value:
+            m_d = m_d[[0, 1, 6,  7, 12, 13]]
+            img = DecoderDataset.__normalization__(img, m_d)
+        elif self.method == Method.std.value:
+            m_d = m_d[[3, 4, 9, 10, 14, 15]]
             img = DecoderDataset.__standardization__(img, m_d)
+        label = self.__normalization_label__(label)
         return img, label
 
     @staticmethod
-    def __normoalziation__(img, m_d):
+    def __normalization__(img, m_d):
         img[0] = (img[0] - m_d[1]) / (m_d[0] - m_d[1])
         img[1] = (img[1] - m_d[3]) / (m_d[2] - m_d[3])
         img[2] = (img[2] - m_d[5]) / (m_d[4] - m_d[5])
@@ -261,6 +243,10 @@ class DecoderDataset(Dataset):
         img[1] = (img[1] - m_d[2]) / m_d[3] 
         img[2] = (img[2] - m_d[4]) / m_d[5] 
         return img
+
+    def __normalization_label__(self, label):
+        label = (label - self.min_label) / (self.max_label - self.min_label)
+        return label
 
     def __len__(self):
         return len(self.img_files)

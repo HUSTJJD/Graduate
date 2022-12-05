@@ -1,35 +1,30 @@
-
-##
 import os
 import sys
-BASE_DIR=  os.path.dirname(os.path.dirname( os.path.abspath(__file__) ))                   
-# 将这个路径添加到环境变量中。
+BASE_DIR=  os.path.dirname(os.path.dirname( os.path.abspath(__file__) )) 
 sys.path.append( BASE_DIR  )
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 ####
 import random
 from datetime import datetime
-
 import torch
-
-###
 from model.TransGen import Decoder
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from train.util import FloatTensor, every_seed, log, resetLog, weights_init_normal, statistics_param, DecoderDataset, device
 
-
-
 # ----------
 # path args
 # ----------
 
-TYPE = 'CST/128_128_norm'
-Task = 'test'
+TYPE = 'dataset/CST/128_128/'
 
-TargetPath = f'dataset/{TYPE}/Target'
-FeaturePath = f'dataset/{TYPE}/Feature/'
-TaskPath = f'result/{Task}/'
+preprocess = ('all','norm')
+
+Task = f'test'
+
+TargetPath = f'{TYPE}Target/'
+FeaturePath = f'{TYPE}Feature/'
+TaskPath = f'result/{preprocess[0]}_{preprocess[1]}_{Task}/'
 os.makedirs(TaskPath) if not os.path.isdir(TaskPath) else None
 
 SaveModelPath = f'{TaskPath}Decoder'
@@ -63,7 +58,7 @@ log(LogPath, f"[Epoch {Epoch}] [BatchSize {BatchSize}] [LearningRate: {LearningR
 # ---------------------
 # create train_dataset
 # ---------------------
-dataset = DecoderDataset(TargetPath, FeaturePath)
+dataset = DecoderDataset(TargetPath, FeaturePath, TYPE, preprocess[0], preprocess[1])
 eval_size = int(eval_ratio * len(dataset))
 train_size = len(dataset) - eval_size
 train_dataset, eval_dataset = torch.utils.data.random_split(dataset, [train_size, eval_size])
@@ -115,7 +110,6 @@ except Exception:
 
 StartTime = datetime.now()
 log(LogPath, '[Start Time: {}]'.format(StartTime))
-
 
 for epo in range(Epoch):
     loss_ep = 0

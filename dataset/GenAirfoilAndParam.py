@@ -8,12 +8,7 @@ os.chdir(os.path.dirname(__file__))
 
 def GenAirfoil():
     N = 1000
-    os.mkdir('./' + dirpath + '/dat') if not os.path.exists('./' +
-                                                            dirpath + '/dat') else None
-
-    # name_value = ["m", "p", "t", "mach", "aoa"]
-    # arr_limit = np.array([[0.0, 0.0, 0.05, mach_min, aoa_min],
-    #                       [0.07, 0.5, 0.25, mach_max, aoa_max]]).T
+    os.mkdir('./' + dirpath + '/dat') if not os.path.exists('./' + dirpath + '/dat') else None
 
     name_value = ['u1', 'u2', 'u3', 'u4', 'u5', 'u6',
                   'l1', 'l2', 'l3', 'l4', 'l5', 'l6']
@@ -32,12 +27,9 @@ def GenAirfoil():
     for i in range(len(data)):
         temp = [dirpath, str(i)]
         temp.extend(data[i])
-        # thread_pool.apply_async(naca4, (temp,))
         thread_pool.apply_async(cst, (temp,))
-
     thread_pool.close()
     thread_pool.join()
-
 
 
 
