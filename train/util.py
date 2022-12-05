@@ -199,21 +199,48 @@ def statistics_param(decoder) -> Tuple[int, int] :
 from torch.utils.data import Dataset
 import numpy as np
 import glob
+from enum import Enum
 
+# 128*128
+# max_min = (1.0537262,-2.49744,295.92245,-27.446018,192.1319,-119.62509)
+# mean_std = (-0.139240873,0.360085847,98.22021867,27.17347675,2.899636259,14.70666339)
+# 256*128
+# max_min = (1.0537262,-2.49744,295.92245,-11.812475,192.1319,-119.62509)
+# mean_std = (-0.221649127,0.410280127,104.0983921,25.7246567,5.795033549,16.61587769)
+
+class Scope(Enum):
+    all = 'all'
+    self = 'self'
+class Method(Enum):
+    std = 0
+    norm = 1
+class PreProcess(Enum):
+    method = Method
+    scope = Scope
 
 class DecoderDataset(Dataset):
-    def __init__(self, image_path, label_path):
+    def __init__(self, image_path, label_path, tag, PreProcess:PreProcess):
         self.img_files = sorted(glob.glob('%s/*.npy' % image_path))
         self.label_files = sorted(glob.glob('%s/*.txt' % label_path))
 
     def __getitem__(self, index):
-        img = np.load(self.img_files[index % len(self.img_files)])
+        img_path = self.img_files[index % len(self.img_files)]
+        img_name = os. img_path
+        img = np.load(img_path)
         label = np.loadtxt(self.label_files[index % len(
             self.label_files)], dtype=np.float32, delimiter=',')
 
+        img = self.PrePorcess(img,)
         return img, label
+
+    def __normoalziation__(img, mp, dp, mx, dx, my, dy):
+        img[0] = img[0] - mp / dp
+        img[1] = img[1] - mx / dx
+        img[2] = img[2] - my / dy
+        return img
 
     def __len__(self):
         return len(self.img_files)
+
 
 

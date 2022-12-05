@@ -13,13 +13,7 @@ os.chdir(os.path.dirname(__file__))
 matplotlib.use('agg')
 
 np.set_printoptions(threshold=np.inf)
-from enum import Enum
 
-class PreProcess(Enum):
-    allnorm = 'allnorm'
-    allstd = 'allstd'
-    selfnorm = 'selfnorm'
-    selfstd = 'selfstd'
 
 # 控制点区间范围
 
@@ -27,18 +21,14 @@ class PreProcess(Enum):
 # 设定采样分辨率 (-region, region) 分成 x * y 个区间， 区间内点的均值做为区间的值 定义左上角 (0, 0) 
 # region = [1.0, -1.0, -0.5, 1.5]
 # x, y = 128, 128
-# max_min = (1.0537262,-2.49744,295.92245,-27.446018,192.1319,-119.62509)
-# mean_std = (-0.139240873,0.360085847,98.22021867,27.17347675,2.899636259,14.70666339)
+
 
 
 region = [0.7, -0.3, -0.5, 1.5]
 x, y = 256, 128
-max_min = (1.0537262,-2.49744,295.92245,-11.812475,192.1319,-119.62509)
-mean_std = (-0.221649127,0.410280127,104.0983921,25.7246567,5.795033549,16.61587769)
 
 TYPE = 'CST'
-method = PreProcess.allstd
-TAG = f'{x}_{y}_{method.value}'
+TAG = f'{x}_{y}'
 CFDPath = f'{TYPE}/cfd_result/'
 TrainPath = f'{TYPE}/{TAG}/'
 TargetPath = f'{TrainPath}Target/'
@@ -52,16 +42,8 @@ os.makedirs(FeaturePath) if not os.path.exists(FeaturePath) else None
 airfoils = np.loadtxt(f'{TYPE}Airfoil.csv', delimiter=',', skiprows=1)
 params = np.loadtxt(f'{TYPE}Param.csv', delimiter=',', skiprows=1)
 
-if method == PreProcess.allnorm:
-    p_a, p_i, x_a, x_i, y_a, y_i = max_min
-    d_p, d_vx, d_vy = p_a-p_i, x_a-x_i, y_a-y_i
-elif method == PreProcess.allstd:
-    p_i, d_p, x_i, d_vx, y_i, d_vy = mean_std
-
 
 def data_extration(arg):
-    if method == PreProcess.allnorm or method == PreProcess.allstd:
-        global p_i, d_p, x_i, d_vx, y_i, d_vy
     Label = f'{arg[0]}_{arg[1]}'
     airfoil, param = airfoils[arg[1], 1:], params[arg[0], 1:]
     feature = np.append(airfoil, param, axis=None).reshape(1,-1)
@@ -77,15 +59,6 @@ def data_extration(arg):
     boundary = data[np.where(data[:, 4] == 0)[0], 0]
 
     png = np.zeros((3, y, x))
-    if method == PreProcess.selfnorm or method == PreProcess.allnorm:
-        png = png - 1
-
-    if method == PreProcess.selfnorm:
-        p_a, p_i, x_a, x_i, y_a, y_i = np.max(data[:, 3]), np.min(data[:, 3]), np.max(data[:, 4]), np.min(data[:, 4]), np.max(data[:, 5]), np.min(data[:, 5])
-        d_p, d_vx, d_vy = p_a-p_i, x_a-x_i, y_a-y_i
-    elif method == PreProcess.selfstd:
-        p_i, x_i, y_i = np.mean(data[:, 3]), np.mean(data[:, 4]), np.mean(data[:, 5])
-        d_p, d_vx, d_vy = np.sqrt(np.std(data[:, 3])), np.sqrt(np.std(data[:, 4])), np.sqrt(np.std(data[:, 5]))
 
     i, j, t = 0, 0, 0
     b_p, b_x, b_y, b_n, b_t = 0, 0, 0, 0, 0
@@ -96,27 +69,23 @@ def data_extration(arg):
         n = len(temp)
         if n != 0:
             if t == 0:
-                p, v_x, v_y = np.mean(temp[:, 3]), np.mean(temp[:, 4]), np.mean(temp[:, 5])
-                png[0][i][j], png[1][i][j], png[2][i][j] = (p - p_i)/d_p, (v_x - x_i)/d_vx, (v_y - y_i)/d_vy
+                png[0][i][j], png[1][i][j], png[2][i][j]= np.mean(temp[:, 3]), np.mean(temp[:, 4]), np.mean(temp[:, 5])
             elif t > 0:
                 # 排除机翼内部点
                 if np.intersect1d(temp[:, 0], boundary).size != 0:
                     if region[2] + (j+1)*d_x<=0 or region[2] + j*d_x>=1:
                         if b_t != 0 and b_p != 0:
-                            p, v_x, v_y = b_p/b_n, b_x/b_n, b_y/b_n
-                            png[0][i][j], png[1][i][j], png[2][i][j] = (p - p_i)/d_p, (v_x - x_i)/d_vx, (v_y - y_i)/d_vy
+                            png[0][i][j], png[1][i][j], png[2][i][j] = b_p/b_n, b_x/b_n, b_y/b_n
                             b_p, b_x, b_y, b_n, b_t, t = 0, 0, 0, 0, 0, 0
                         else:
-                            p, v_x, v_y = np.mean(temp[:, 3]), np.mean(temp[:, 4]), np.mean(temp[:, 5])
-                            png[0][i][j], png[1][i][j], png[2][i][j] = (p - p_i)/d_p, (v_x - x_i)/d_vx, (v_y - y_i)/d_vy
+                            png[0][i][j], png[1][i][j], png[2][i][j] = np.mean(temp[:, 3]), np.mean(temp[:, 4]), np.mean(temp[:, 5])
                     else:
                         t = 0
                 elif b_p != 0:
                     if n > b_n:
-                        p = b_p/b_n * t/(t+b_t) + (np.sum(temp[:, 3])-b_p)/(n-b_n)*b_t/(t+b_t)
-                        v_x = b_x/b_n * t/(t+b_t)+ (np.sum(temp[:, 4])-b_x)/(n-b_n)*b_t/(t+b_t)
-                        v_y = b_y/b_n * t/(t+b_t) + (np.sum(temp[:, 5])-b_y)/(n-b_n)*b_t/(t+b_t)
-                        png[0][i][j], png[1][i][j], png[2][i][j] = (p - p_i)/d_p, (v_x - x_i)/d_vx, (v_y - y_i)/d_vy
+                        png[0][i][j] = b_p/b_n * t/(t+b_t) + (np.sum(temp[:, 3])-b_p)/(n-b_n)*b_t/(t+b_t)
+                        png[1][i][j] = b_x/b_n * t/(t+b_t)+ (np.sum(temp[:, 4])-b_x)/(n-b_n)*b_t/(t+b_t)
+                        png[2][i][j] = b_y/b_n * t/(t+b_t) + (np.sum(temp[:, 5])-b_y)/(n-b_n)*b_t/(t+b_t)
                         b_p, b_x, b_y, b_n, b_t, t = 0, 0, 0, 0, 0, 0
                     else:
                         t += 1
@@ -137,10 +106,7 @@ def data_extration(arg):
 
     # 输出通道数据的示意图
     cmap = cm.get_cmap('jet', 99999)
-    if method == PreProcess.selfnorm or  method == PreProcess.allnorm:
-        png = np.ma.masked_values(png, -1)
-    elif method == PreProcess.selfstd or  method == PreProcess.allstd:
-        png = np.ma.masked_values(png, 0)
+    png = np.ma.masked_values(png, 0)
     png[0] = matplotlib.colors.Normalize(vmin=np.min(png[0]), vmax=np.max(png[0]))(png[0])
     png[1] = matplotlib.colors.Normalize(vmin=np.min(png[1]), vmax=np.max(png[1]))(png[1])
     png[2] = matplotlib.colors.Normalize(vmin=np.min(png[2]), vmax=np.max(png[2]))(png[2])
