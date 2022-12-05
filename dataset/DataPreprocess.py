@@ -19,13 +19,13 @@ np.set_printoptions(threshold=np.inf)
 
 # 取 region [top, bottom, left, right]
 # 设定采样分辨率 (-region, region) 分成 x * y 个区间， 区间内点的均值做为区间的值 定义左上角 (0, 0) 
-# region = [1.0, -1.0, -0.5, 1.5]
-# x, y = 128, 128
+region = [1.0, -1.0, -0.5, 1.5]
+x, y = 128, 128
 
 
 
-region = [0.7, -0.3, -0.5, 1.5]
-x, y = 256, 128
+# region = [0.7, -0.3, -0.5, 1.5]
+# x, y = 256, 128
 
 TYPE = 'CST'
 TAG = f'{x}_{y}'
@@ -175,7 +175,7 @@ if __name__ == '__main__':
         args = []
         for i in range(len(params)):
             for j in range(len(airfoils)):
-                if os.path.exists(f'{CFDPath}{i}_{j}.txt') and not os.path.exists(f'{TargetPath}{i}_{j}.npy'):
+                if os.path.exists(f'{CFDPath}{i}_{j}.txt') and not os.path.exists(f'{VisualPath}{i}_{j}.png'):
                     args.append((i,j))
         thread_pool = Pool()
         thread_pool.map_async(data_extration, args)
