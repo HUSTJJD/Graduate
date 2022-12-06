@@ -30,10 +30,10 @@ x, y = 128, 128
 TYPE = 'CST'
 TAG = f'{x}_{y}'
 CFDPath = f'{TYPE}/cfd_result/'
-TrainPath = f'{TYPE}/{TAG}/'
-TargetPath = f'{TrainPath}Target/'
-VisualPath = f'{TrainPath}Visual/'
-FeaturePath = f'{TrainPath}Feature/'
+DatasetPath = f'{TYPE}/{TAG}/'
+TargetPath = f'{DatasetPath}Target/'
+VisualPath = f'{DatasetPath}Visual/'
+FeaturePath = f'{DatasetPath}Feature/'
 
 os.makedirs(TargetPath) if not os.path.exists(TargetPath) else None
 os.makedirs(VisualPath) if not os.path.exists(VisualPath) else None
@@ -122,7 +122,7 @@ def data_extration(arg):
 
 
 def find_max():
-    file = f'{TYPE}/{x}_{y}_statistics.csv'
+    file = f'{DatasetPath}self.csv'
     if not os.path.exists(file):
         f = open(file, 'w')
         print('','p_max', 'p_min', 'p_avg', 'p_std', 'p_var', 'p_mid', sep=",", end=',', file=f)
@@ -161,6 +161,21 @@ def find_max():
         f.close()
 
 
+def get_cl_cd_cm():
+    file = f'{TYPE}/cl_cd_cm.csv'
+    if not os.path.exists(file):
+        f = open(file, 'w')
+        print('','cl', 'cd', 'cm', sep=",", file=f)
+        for i in range(len(params)):
+            for j in range(len(airfoils)):
+                Label = f'{i}_{j}'
+                param =  '{:.0f}_{:.0f}'.format(params[i][1]*10, params[i][2]*10)
+                path = f'{TYPE}/cfd_result/cas/{j}/{param}'
+                cl = open(f'{path}_cl.out').readlines()[-1].split(' ')[1].removesuffix('\n')
+                cd = open(f'{path}_cd.out').readlines()[-1].split(' ')[1].removesuffix('\n')
+                cm = open(f'{path}_cm.out').readlines()[-1].split(' ')[1].removesuffix('\n')
+                print(Label, cl, cd, cm, sep=",", file=f)
+        f.close()
 
 
 # find_max()
@@ -171,7 +186,7 @@ def find_max():
 
 if __name__ == '__main__':
     # 多线程提取数据
-    if 1: 
+    if 0: 
         args = []
         for i in range(len(params)):
             for j in range(len(airfoils)):
@@ -182,7 +197,7 @@ if __name__ == '__main__':
         thread_pool.close()
         thread_pool.join()
     # 输出流场图的视频
-    if 1: 
+    if 0: 
         if not os.path.exists(f'{TYPE}/{TAG}.mp4'):
             frames = []
             files  = os.listdir(VisualPath)
@@ -192,3 +207,6 @@ if __name__ == '__main__':
     # 输出统计值
 #     if 0: 
 #         find_max()
+    if 0: 
+        get_cl_cd_cm()
+
